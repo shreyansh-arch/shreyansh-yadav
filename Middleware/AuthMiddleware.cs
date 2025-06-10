@@ -1,25 +1,18 @@
-namespace UserManagementAPI.Middleware
+public class AuthMiddleware
 {
-    public class AuthMiddleware
+    private readonly RequestDelegate _next;
+
+    public AuthMiddleware(RequestDelegate next) => _next = next;
+
+    public async Task InvokeAsync(HttpContext context)
     {
-        private readonly RequestDelegate _next;
-
-        public AuthMiddleware(RequestDelegate next)
+        var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        if (token != "securetoken123")
         {
-            _next = next;
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Unauthorized");
+            return;
         }
-
-        public async Task InvokeAsync(HttpContext context)
-        {
-            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            if (token != "securetoken123")
-            {
-                context.Response.StatusCode = 401;
-                await context.Response.WriteAsync("Unauthorized");
-                return;
-            }
-
-            await _next(context);
-        }
+        await _next(context);
     }
 }
