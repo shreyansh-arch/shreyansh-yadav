@@ -7,34 +7,35 @@ namespace UserManagementAPI.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private static readonly List<User> Users = new();
+        private static List<User> users = new List<User>();
+        private static int nextId = 1;
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(Users);
+        public IActionResult GetUsers() => Ok(users);
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public IActionResult GetUser(int id)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            return user == null ? NotFound(new { error = "User not found." }) : Ok(user);
+            var user = users.FirstOrDefault(u => u.Id == id);
+            if (user == null) return NotFound(new { error = "User not found" });
+            return Ok(user);
         }
 
         [HttpPost]
-        public IActionResult Create(User user)
+        public IActionResult AddUser([FromBody] User user)
         {
-            if (string.IsNullOrWhiteSpace(user.FullName) || string.IsNullOrWhiteSpace(user.Email))
-                return BadRequest(new { error = "Invalid user data." });
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            user.Id = Users.Count > 0 ? Users.Max(u => u.Id) + 1 : 1;
-            Users.Add(user);
-            return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
+            user.Id = nextId++;
+            users.Add(user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, User updatedUser)
+        public IActionResult UpdateUser(int id, [FromBody] User updatedUser)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return NotFound(new { error = "User not found." });
+            var user = users.FirstOrDefault(u => u.Id == id);
+            if (user == null) return NotFound(new { error = "User not found" });
 
             user.FullName = updatedUser.FullName;
             user.Email = updatedUser.Email;
@@ -42,12 +43,12 @@ namespace UserManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public IActionResult DeleteUser(int id)
         {
-            var user = Users.FirstOrDefault(u => u.Id == id);
-            if (user == null) return NotFound(new { error = "User not found." });
+            var user = users.FirstOrDefault(u => u.Id == id);
+            if (user == null) return NotFound(new { error = "User not found" });
 
-            Users.Remove(user);
+            users.Remove(user);
             return NoContent();
         }
     }
