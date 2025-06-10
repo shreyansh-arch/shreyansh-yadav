@@ -1,3 +1,4 @@
 builder.Services.AddSingleton<LoggingMiddleware>();
 builder.Services.AddSingleton<ErrorHandlingMiddleware>();
 builder.Services.AddSingleton<AuthMiddleware>();
+var app = builder.Build();
